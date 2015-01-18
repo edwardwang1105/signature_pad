@@ -25,6 +25,28 @@ var SignaturePad = (function (document) {
         this.velocityFilterWeight = opts.velocityFilterWeight || 0.7;
         this.minWidth = opts.minWidth || 0.5;
         this.maxWidth = opts.maxWidth || 2.5;
+        this.signatureStyle = opts.signatureStyle || 'default';
+        this.angle = opts.angle || 45;
+        this.dotSize = opts.dotSize || function () {
+            return (this.minWidth + this.maxWidth) / 2;
+        };
+        this.penColor = opts.penColor || "black";
+        this.backgroundColor = opts.backgroundColor || "rgba(0,0,0,0)";
+        this.onEnd = opts.onEnd;
+        this.onBegin = opts.onBegin;
+
+        this._canvas = canvas;
+        this._ctx = canvas.getContext("2d");
+        this.clear();
+
+        this._handleMouseEvents();
+        this._handleTouchEvents();
+    };
+
+    SignaturePad.prototype.clear = function () {
+        var ctx = this._ctx,
+            canvas = this._canvas;
+
         this.dotSize = opts.dotSize || function () {
             return (this.minWidth + this.maxWidth) / 2;
         };
@@ -252,6 +274,22 @@ var SignaturePad = (function (document) {
         this._isEmpty = false;
     };
 
+    SignaturePad.prototype._drawCalligraphPoint = function (x, y, size) {
+        var ctx = this._ctx;
+        var angle = this.angle;
+        var deltaX = size * Math.cos(angle * Math.PI / 180);
+        var deltaY = size * Math.sin(angle * Math.PI / 180);
+
+        ctx.lineCap = 'round';
+        ctx.lineWidth = 3;
+
+        ctx.moveTo(x - deltaX, y + deltaY);
+        ctx.lineTo(x + deltaX, y - deltaY);
+        ctx.stroke();
+
+        this._isEmpty = false;
+    };
+    
     SignaturePad.prototype._drawCurve = function (curve, startWidth, endWidth) {
         var ctx = this._ctx,
             widthDelta = endWidth - startWidth,
@@ -279,7 +317,9 @@ var SignaturePad = (function (document) {
             y += ttt * curve.endPoint.y;
 
             width = startWidth + ttt * widthDelta;
-            this._drawPoint(x, y, width);
+            
+            if (this.signatureStyle == 'calligraphy') this._drawCalligraphPoint(x, y, width);
+            else this._drawPoint(x, y, width);
         }
         ctx.closePath();
         ctx.fill();

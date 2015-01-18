@@ -17,7 +17,11 @@ function resizeCanvas() {
 window.onresize = resizeCanvas;
 resizeCanvas();
 
-signaturePad = new SignaturePad(canvas);
+signaturePad = new SignaturePad(canvas, {
+    minWidth: 5,
+    maxWidth: 5,
+    signatureStyle: 'calligraphy'
+});
 
 clearButton.addEventListener("click", function (event) {
     signaturePad.clear();
